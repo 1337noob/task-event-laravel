@@ -25,7 +25,7 @@ class TaskCreateTest extends TestCase
         ];
 
         $response = $this->actingAs($user)
-            ->post(route('tasks.create'), $newTask);
+            ->postJson(route('tasks.create'), $newTask);
 
         $response
             ->dump()

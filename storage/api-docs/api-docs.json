@@ -12,13 +12,44 @@
         }
     ],
     "paths": {
-        "/api/login": {
+        "/api/auth/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Register",
+                "operationId": "d764dd091cc4494ae0baf360b03319f3",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AuthRegisterRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/auth/login": {
             "post": {
                 "tags": [
                     "Auth"
                 ],
                 "summary": "Login",
-                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "operationId": "8dcb70df1020986038d098cc08d05dae",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -50,9 +81,22 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "token": {
-                                            "type": "string",
-                                            "example": "1|randomtoken123"
+                                        "data": {
+                                            "properties": {
+                                                "token": {
+                                                    "type": "string",
+                                                    "example": "1|randomtoken123"
+                                                },
+                                                "type": {
+                                                    "type": "string",
+                                                    "example": "bearer"
+                                                },
+                                                "expires_in": {
+                                                    "type": "integer",
+                                                    "example": 3600
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
@@ -63,70 +107,23 @@
                 }
             }
         },
-        "/api/tasks": {
+        "/api/auth/logout": {
             "post": {
                 "tags": [
-                    "Tasks"
+                    "Auth"
                 ],
-                "summary": "Create a task",
-                "operationId": "f803ebdb2300acdb7e93bbe8d0b9a2e8",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "title"
-                                ],
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "example": "New task"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
+                "summary": "logout",
+                "operationId": "69281b12abb272c76871f19cb17ca563",
                 "responses": {
-                    "201": {
-                        "description": "Tasks created",
+                    "200": {
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "task": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "string",
-                                                            "example": "0199e304-798d-72ad-8f41-80bdc6de0d90"
-                                                        },
-                                                        "title": {
-                                                            "type": "string",
-                                                            "example": "New task"
-                                                        },
-                                                        "user_id": {
-                                                            "type": "string",
-                                                            "example": "0199dd17-88ea-7037-ba2d-cf60e784f928"
-                                                        },
-                                                        "created_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "example": "2025-10-14T13:59:05.000000Z"
-                                                        },
-                                                        "updated_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "example": "2025-10-14T13:59:05.000000Z"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "type": "object"
+                                        "message": {
+                                            "type": "string",
+                                            "example": "success"
                                         }
                                     },
                                     "type": "object"
@@ -142,7 +139,160 @@
                 ]
             }
         },
+        "/api/auth/me": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Me",
+                "operationId": "b9abb1a7a74670a19c215c2c133f14d8",
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get tasks",
+                "operationId": "471d938a3bfaeb6fbd981d7c3e2728b0",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search title",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "new"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TaskListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Create a task",
+                "operationId": "f803ebdb2300acdb7e93bbe8d0b9a2e8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreTaskRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TaskResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/tasks/{uuid}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Show a task",
+                "operationId": "70cc51533dd6b3299b7e4412b2be5337",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TaskResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
             "put": {
                 "tags": [
                     "Tasks"
@@ -166,16 +316,7 @@
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "title"
-                                ],
-                                "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "example": "Updated"
-                                    }
-                                },
-                                "type": "object"
+                                "$ref": "#/components/schemas/UpdateTaskRequest"
                             }
                         }
                     }
@@ -186,41 +327,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "properties": {
-                                                "task": {
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "string",
-                                                            "example": "0199e304-798d-72ad-8f41-80bdc6de0d90"
-                                                        },
-                                                        "title": {
-                                                            "type": "string",
-                                                            "example": "Updated"
-                                                        },
-                                                        "user_id": {
-                                                            "type": "string",
-                                                            "example": "0199dd17-88ea-7037-ba2d-cf60e784f928"
-                                                        },
-                                                        "created_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "example": "2025-10-14T13:59:05.000000Z"
-                                                        },
-                                                        "updated_at": {
-                                                            "type": "string",
-                                                            "format": "date-time",
-                                                            "example": "2025-10-14T14:30:15.000000Z"
-                                                        }
-                                                    },
-                                                    "type": "object"
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    },
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/TaskResponse"
                                 }
                             }
                         }
@@ -251,20 +358,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Deleted",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "data": {
-                                            "type": "string",
-                                            "example": "deleted"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Deleted"
                     }
                 },
                 "security": [
@@ -276,6 +370,217 @@
         }
     },
     "components": {
+        "schemas": {
+            "AuthLoginRequest": {
+                "required": [
+                    "login",
+                    "password"
+                ],
+                "properties": {
+                    "login": {
+                        "type": "string",
+                        "example": "user"
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "AuthRegisterRequest": {
+                "required": [
+                    "name",
+                    "login",
+                    "password"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "New user"
+                    },
+                    "login": {
+                        "type": "string",
+                        "example": "user"
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "password"
+                    }
+                },
+                "type": "object"
+            },
+            "StoreTaskRequest": {
+                "required": [
+                    "title"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "New Task"
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateTaskRequest": {
+                "required": [
+                    "title"
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "example": "Updated"
+                    }
+                },
+                "type": "object"
+            },
+            "TaskListResponse": {
+                "properties": {
+                    "data": {
+                        "properties": {
+                            "tasks": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "meta": {
+                        "properties": {
+                            "current_page": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "per_page": {
+                                "type": "integer",
+                                "example": 10
+                            },
+                            "total": {
+                                "type": "integer",
+                                "example": 25
+                            },
+                            "last_page": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "from": {
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "to": {
+                                "type": "integer",
+                                "example": 10
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "links": {
+                        "properties": {
+                            "first": {
+                                "type": "string",
+                                "example": "http://localhost:8000/api/tasks?page=1"
+                            },
+                            "last": {
+                                "type": "string",
+                                "example": "http://localhost:8000/api/tasks?page=3"
+                            },
+                            "prev": {
+                                "type": "string",
+                                "nullable": true
+                            },
+                            "next": {
+                                "type": "string",
+                                "example": "http://localhost:8000/api/tasks?page=2"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "TaskResponse": {
+                "properties": {
+                    "data": {
+                        "properties": {
+                            "task": {
+                                "$ref": "#/components/schemas/Task"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Task": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "0199e304-798d-72ad-8f41-80bdc6de0d90"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "New Task"
+                    },
+                    "user_id": {
+                        "type": "string",
+                        "example": "0199dd17-88ea-7037-ba2d-cf60e784f928"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-14T13:59:05.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-14T13:59:05.000000Z"
+                    }
+                },
+                "type": "object"
+            },
+            "UserResponse": {
+                "properties": {
+                    "data": {
+                        "properties": {
+                            "user": {
+                                "$ref": "#/components/schemas/User"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "0199e304-798d-72ad-8f41-80bdc6de0d90"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Name"
+                    },
+                    "login": {
+                        "type": "string",
+                        "example": "user1"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-14T13:59:05.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-14T13:59:05.000000Z"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",

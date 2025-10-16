@@ -3,15 +3,18 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use OpenApi\Attributes as OA;
 
+
+#[OA\Schema(
+    schema: "StoreTaskRequest",
+    required: ["title"],
+    properties: [
+        new OA\Property(property: "title", type: "string", example: "New Task")
+    ]
+)]
 class StoreTaskRequest extends FormRequest
 {
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [

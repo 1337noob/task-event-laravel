@@ -5,62 +5,91 @@ namespace App\Http\Controllers;
 use App\Events\TaskCreated;
 use App\Events\TaskDeleted;
 use App\Events\TaskUpdated;
+use App\Http\Requests\GetTasksRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Resources\TaskResource;
 use App\Models\Task;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
 
 class TaskController extends Controller
 {
+    #[OA\Get(
+        path: "/api/tasks",
+        summary: "Get tasks",
+        security: [["bearerAuth" => []]],
+        tags: ["Tasks"],
+        parameters: [
+            new OA\Parameter(
+                name: "page",
+                description: "Page number",
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: "integer", example: 1)
+            ),
+            new OA\Parameter(
+                name: "per_page",
+                description: "Per page",
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: "integer", example: 10)
+            ),
+            new OA\Parameter(
+                name: "search",
+                description: "Search title",
+                in: "query",
+                required: false,
+                schema: new OA\Schema(type: "string", example: "new")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Success",
+                content: new OA\JsonContent(ref: "#/components/schemas/TaskListResponse")
+            ),
+        ]
+    )]
+    public function index(GetTasksRequest $request): AnonymousResourceCollection
+    {
+        $validated = $request->validated();
+        $perPage = $validated['per_page'] ?? 10;
+        $page = $validated['page'] ?? 1;
+        $search = $validated['search'] ?? null;
+
+        $query = $request->user()->tasks();
+
+        if ($search) {
+            $query->where('title', 'LIKE', "%{$search}%");
+        }
+
+        $query->orderBy('created_at', 'DESC');
+
+        $tasks = $query->paginate($perPage, ['*'], 'page', $page);
+
+        return TaskResource::collection($tasks);
+    }
+
     #[OA\Post(
         path: "/api/tasks",
         summary: "Create a task",
         security: [["bearerAuth" => []]],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\MediaType(
-                mediaType: "application/json",
-                schema: new OA\Schema(
-                    required: ["title"],
-                    properties: [
-                        new OA\Property(property: "title", type: "string", example: "New task")
-                    ]
-                )
-            )
+            content: new OA\JsonContent(ref: "#/components/schemas/StoreTaskRequest")
         ),
         tags: ["Tasks"],
         responses: [
             new OA\Response(
                 response: 201,
-                description: "Tasks created",
-                content: new OA\MediaType(
-                    mediaType: "application/json",
-                    schema: new OA\Schema(
-                        properties: [
-                            new OA\Property(
-                                property: "data",
-                                properties: [
-                                    new OA\Property(
-                                        property: "task",
-                                        properties: [
-                                            new OA\Property(property: "id", type: "string", example: "0199e304-798d-72ad-8f41-80bdc6de0d90"),
-                                            new OA\Property(property: "title", type: "string", example: "New task"),
-                                            new OA\Property(property: "user_id", type: "string", example: "0199dd17-88ea-7037-ba2d-cf60e784f928"),
-                                            new OA\Property(property: "created_at", type: "string", format: "date-time", example: "2025-10-14T13:59:05.000000Z"),
-                                            new OA\Property(property: "updated_at", type: "string", format: "date-time", example: "2025-10-14T13:59:05.000000Z")
-                                        ],
-                                        type: "object"
-                                    )
-                                ],
-                                type: "object"
-                            )
-                        ]
-                    )
-                )
+                description: "Created",
+                content: new OA\JsonContent(ref: "#/components/schemas/TaskResponse")
             ),
-        ]
+        ],
     )]
-    public function store(StoreTaskRequest $request)
+    public function store(StoreTaskRequest $request): TaskResource
     {
         $validated = $request->validated();
 
@@ -70,9 +99,33 @@ class TaskController extends Controller
 
         TaskCreated::dispatch($task);
 
-        return response()->json([
-            'data' => ['task' => $task]
-        ], 201);
+        return new TaskResource($task);
+    }
+
+    #[OA\Get(
+        path: "/api/tasks/{uuid}",
+        summary: "Show a task",
+        security: [["bearerAuth" => []]],
+        tags: ["Tasks"],
+        parameters: [
+            new OA\Parameter(
+                name: "uuid",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "string", format: "uuid")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Success",
+                content: new OA\JsonContent(ref: "#/components/schemas/TaskResponse")
+            ),
+        ],
+    )]
+    public function show(Task $task): TaskResource
+    {
+        return new TaskResource($task);
     }
 
     #[OA\Put(
@@ -81,15 +134,7 @@ class TaskController extends Controller
         security: [["bearerAuth" => []]],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\MediaType(
-                mediaType: "application/json",
-                schema: new OA\Schema(
-                    required: ["title"],
-                    properties: [
-                        new OA\Property(property: "title", type: "string", example: "Updated")
-                    ]
-                )
-            )
+            content: new OA\JsonContent(ref: "#/components/schemas/UpdateTaskRequest")
         ),
         tags: ["Tasks"],
         parameters: [
@@ -105,34 +150,11 @@ class TaskController extends Controller
             new OA\Response(
                 response: 200,
                 description: "Updated",
-                content: new OA\MediaType(
-                    mediaType: "application/json",
-                    schema: new OA\Schema(
-                        properties: [
-                            new OA\Property(
-                                property: "data",
-                                properties: [
-                                    new OA\Property(
-                                        property: "task",
-                                        properties: [
-                                            new OA\Property(property: "id", type: "string", example: "0199e304-798d-72ad-8f41-80bdc6de0d90"),
-                                            new OA\Property(property: "title", type: "string", example: "Updated"),
-                                            new OA\Property(property: "user_id", type: "string", example: "0199dd17-88ea-7037-ba2d-cf60e784f928"),
-                                            new OA\Property(property: "created_at", type: "string", format: "date-time", example: "2025-10-14T13:59:05.000000Z"),
-                                            new OA\Property(property: "updated_at", type: "string", format: "date-time", example: "2025-10-14T14:30:15.000000Z")
-                                        ],
-                                        type: "object"
-                                    )
-                                ],
-                                type: "object"
-                            )
-                        ]
-                    )
-                )
+                content: new OA\JsonContent(ref: "#/components/schemas/TaskResponse")
             ),
         ]
     )]
-    public function update(UpdateTaskRequest $request, Task $task)
+    public function update(UpdateTaskRequest $request, Task $task): TaskResource
     {
         $validated = $request->validated();
 
@@ -140,9 +162,7 @@ class TaskController extends Controller
 
         TaskUpdated::dispatch($task);
 
-        return response()->json([
-            'data' => ['task' => $task]
-        ], 200);
+        return new TaskResource($task);
     }
 
     #[OA\Delete(
@@ -162,18 +182,10 @@ class TaskController extends Controller
             new OA\Response(
                 response: 200,
                 description: "Deleted",
-                content: new OA\MediaType(
-                    mediaType: "application/json",
-                    schema: new OA\Schema(
-                        properties: [
-                            new OA\Property(property: "data", type: "string", example: "deleted")
-                        ]
-                    )
-                )
             ),
         ]
     )]
-    public function destroy(Task $task)
+    public function destroy(Task $task): JsonResponse
     {
         $task->delete();
 

@@ -15,6 +15,10 @@ php artisan migrate:fresh --seed
 ```
 
 ```shell
+php artisan jwt:secret
+```
+
+```shell
 php artisan serve
 ```
 
