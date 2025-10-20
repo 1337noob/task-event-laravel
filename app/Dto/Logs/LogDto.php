@@ -1,8 +1,8 @@
 <?php
 
-namespace app\Dto\Logs;
+declare(strict_types=1);
 
-use Carbon\Carbon;
+namespace App\Dto\Logs;
 
 class LogDto
 {
@@ -16,5 +16,4 @@ class LogDto
     )
     {
     }
-
 }

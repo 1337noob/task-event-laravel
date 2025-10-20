@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Dto\Logs;
+namespace App\Dto\Logs;
 
 readonly class LogFiltersDto
 {

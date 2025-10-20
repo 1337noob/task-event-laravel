@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use app\Dto\Logs\LogFiltersDto;
+use App\Dto\Logs\LogFiltersDto;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
@@ -58,7 +58,5 @@ class LogRepository
                 'invalid response structure'
             );
         }
-
     }
-
 }

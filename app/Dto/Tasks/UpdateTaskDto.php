@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\Dto\Tasks;
+namespace App\Dto\Tasks;
 
 readonly class UpdateTaskDto
 {

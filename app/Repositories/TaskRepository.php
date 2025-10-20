@@ -24,11 +24,11 @@ class TaskRepository
         return $query->paginate($filters->per_page);
     }
 
-    public function findById(string $id): Task
+    public function findById(string $id): ?Task
     {
         return Task::query()
             ->with('user')
-            ->findOrFail($id);
+            ->find($id);
     }
 
     public function create(CreateTaskDto $createTask): Task
@@ -54,6 +54,4 @@ class TaskRepository
     {
         Task::destroy($id);
     }
-
-
 }

@@ -14,9 +14,11 @@ use Illuminate\Support\Facades\Log;
 
 class LogService
 {
+    const CACHE_PREFIX = 'logs:';
+
     public function __construct(
         private readonly LogRepository $logRepository,
-        private readonly int $cache_ttl,
+        private readonly int           $cache_ttl,
     )
     {
     }
@@ -28,19 +30,21 @@ class LogService
     {
         $validated = $request->validated();
 
+        $page = isset($validated['page'])
+            ? (int)$validated['page']
+            : 1;
+        $perPage = isset($validated['per_page'])
+            ? (int)$validated['per_page']
+            : config('paginate.per_page');
+
         $filters = new LogFiltersDto(
             user_id: $validated['user_id'] ?? null,
             event: $validated['event'] ?? null,
-            page: isset($validated['page']) ? (int)$validated['page'] : 1,
-            per_page: isset($validated['per_page']) ? (int)$validated['per_page'] : 10,
+            page: $page,
+            per_page: $perPage,
         );
 
-        $key = sprintf('%s:%s:%s:%s',
-            $filters->page,
-            $filters->per_page,
-            $filters->event,
-            $filters->user_id
-        );
+        $key = $this->generateKey($filters);
 
         try {
             $result = $this->logRepository->getByFilters($filters);
@@ -78,5 +82,17 @@ class LogService
             perPage: $data['meta']['per_page'],
             currentPage: $data['meta']['current_page'],
         );
+    }
+
+    private function generateKey(LogFiltersDto $filters): string
+    {
+        $keyData = [
+            'page' => $filters->page,
+            'per_page' => $filters->per_page,
+            'event' => $filters->event ?? 'null',
+            'user_id' => $filters->user_id ?? 'null',
+        ];
+
+        return self::CACHE_PREFIX . md5(serialize($keyData));
     }
 }

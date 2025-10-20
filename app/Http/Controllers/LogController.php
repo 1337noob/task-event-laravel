@@ -21,7 +21,10 @@ class LogController
         try {
             $result = $this->logService->getByFilters($request);
         } catch (\Throwable $e) {
-            return response()->json(['message' => $e->getMessage()], 500);
+            return response()->json([
+                'message' => $e->getMessage()],
+                $e->getCode() ?? 500
+            );
         }
 
         return LogResource::collection($result);

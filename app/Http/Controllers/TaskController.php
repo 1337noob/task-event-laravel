@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\NotFoundException;
 use App\Http\Requests\GetTasksRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
@@ -9,8 +10,9 @@ use App\Http\Requests\DeleteTaskRequest;
 use App\Http\Requests\ShowTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Services\TaskService;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 use OpenApi\Attributes as OA;
 
 class TaskController extends Controller
@@ -81,9 +83,13 @@ class TaskController extends Controller
             ),
         ],
     )]
-    public function store(StoreTaskRequest $request): TaskResource
+    public function store(StoreTaskRequest $request): TaskResource|JsonResponse
     {
-        $task = $this->taskService->create($request);
+        try {
+            $task = $this->taskService->create($request);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
 
         return new TaskResource($task);
     }
@@ -109,9 +115,15 @@ class TaskController extends Controller
             ),
         ],
     )]
-    public function show(ShowTaskRequest $request): TaskResource
+    public function show(ShowTaskRequest $request): TaskResource|JsonResponse
     {
-        $task = $this->taskService->findById($request);
+        try {
+            $task = $this->taskService->findById($request);
+        } catch (NotFoundException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
 
         return new TaskResource($task);
     }
@@ -142,9 +154,15 @@ class TaskController extends Controller
             ),
         ]
     )]
-    public function update(UpdateTaskRequest $request): TaskResource
+    public function update(UpdateTaskRequest $request): TaskResource|JsonResponse
     {
-        $task = $this->taskService->update($request);
+        try {
+            $task = $this->taskService->update($request);
+        } catch (NotFoundException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
 
         return new TaskResource($task);
     }
@@ -169,9 +187,15 @@ class TaskController extends Controller
             ),
         ]
     )]
-    public function destroy(DeleteTaskRequest $request)
+    public function destroy(DeleteTaskRequest $request): Response|JsonResponse
     {
-        $this->taskService->deleteById($request);
+        try {
+            $this->taskService->deleteById($request);
+        } catch (NotFoundException $e) {
+            return response()->json(['message' => $e->getMessage()], 404);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getCode());
+        }
 
         return response()->noContent();
     }
