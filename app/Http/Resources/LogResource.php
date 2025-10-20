@@ -51,7 +51,8 @@ use OpenApi\Attributes as OA;
     schema: "Log",
     properties: [
         new OA\Property(property: "id", type: "string", example: "0199e304-798d-72ad-8f41-80bdc6de0d90"),
-        new OA\Property(property: "title", type: "string", example: "New Task"),
+        new OA\Property(property: "event", type: "string", example: "TaskCreated"),
+        new OA\Property(property: "task_id", type: "string", example: "0199dd17-88ea-7037-ba2d-cf60e784f928"),
         new OA\Property(property: "user_id", type: "string", example: "0199dd17-88ea-7037-ba2d-cf60e784f928"),
         new OA\Property(property: "created_at", type: "string", format: "date-time", example: "2025-10-14T13:59:05.000000Z"),
         new OA\Property(property: "updated_at", type: "string", format: "date-time", example: "2025-10-14T13:59:05.000000Z")

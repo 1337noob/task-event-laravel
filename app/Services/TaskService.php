@@ -10,7 +10,6 @@ use app\Dto\Tasks\UpdateTaskDto;
 use App\Events\TaskCreated;
 use App\Events\TaskDeleted;
 use App\Events\TaskUpdated;
-use App\Exceptions\NotFoundException;
 use App\Http\Requests\GetTasksRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
@@ -20,6 +19,8 @@ use App\Models\Task;
 use App\Repositories\TaskRepository;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 class TaskService
 {
@@ -62,9 +63,6 @@ class TaskService
         return $task;
     }
 
-    /**
-     * @throws NotFoundException
-     */
     public function findById(ShowTaskRequest $request): Task
     {
         $validated = $request->validated();
@@ -76,9 +74,6 @@ class TaskService
         return $task;
     }
 
-    /**
-     * @throws NotFoundException
-     */
     public function update(UpdateTaskRequest $request): Task
     {
         $validated = $request->validated();
@@ -97,9 +92,6 @@ class TaskService
         return $task;
     }
 
-    /**
-     * @throws NotFoundException
-     */
     public function deleteById(DeleteTaskRequest $request): void
     {
         $validated = $request->validated();
@@ -113,9 +105,6 @@ class TaskService
         TaskDeleted::dispatch($task);
     }
 
-    /**
-     * @throws AccessDeniedHttpException
-     */
     private function guardTaskUserId(Task $task, string $userId): void
     {
         if ($task->user->id !== $userId) {
@@ -125,14 +114,13 @@ class TaskService
         }
     }
 
-    /**
-     * @throws NotFoundException
-     */
     private function findTaskOrFail(string $id): Task
     {
         $task = $this->taskRepository->findById($id);
         if (!$task) {
-            throw new NotFoundException();
+            throw new NotFoundHttpException(
+                'Task not found'
+            );
         }
 
         return $task;

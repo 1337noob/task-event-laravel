@@ -6,6 +6,7 @@ use App\Http\Requests\AuthLoginRequest;
 use App\Http\Requests\AuthRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
@@ -83,9 +84,7 @@ class AuthController
         $validated = $request->validated();
 
         if (!$token = auth()->attempt($validated)) {
-            return response()->json([
-                'message' => 'Unauthorized',
-            ], 401);
+            throw new AuthenticationException();
         }
 
         return response()->json(['data' => [

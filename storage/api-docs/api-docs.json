@@ -165,6 +165,74 @@
                 ]
             }
         },
+        "/api/logs": {
+            "get": {
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "Get logs",
+                "operationId": "07258c00ce1b2cbc7c7151a7cc8ca986",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 10
+                        }
+                    },
+                    {
+                        "name": "user_id",
+                        "in": "query",
+                        "description": "Search user_id",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "0199dd17-88ea-7037-ba2d-cf60e784f928"
+                        }
+                    },
+                    {
+                        "name": "event",
+                        "in": "query",
+                        "description": "Search event",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "created"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LogListResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/tasks": {
             "get": {
                 "tags": [
@@ -194,7 +262,7 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "title",
                         "in": "query",
                         "description": "Search title",
                         "required": false,
@@ -509,9 +577,13 @@
                         "type": "string",
                         "example": "0199e304-798d-72ad-8f41-80bdc6de0d90"
                     },
-                    "title": {
+                    "event": {
                         "type": "string",
-                        "example": "New Task"
+                        "example": "TaskCreated"
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "example": "0199dd17-88ea-7037-ba2d-cf60e784f928"
                     },
                     "user_id": {
                         "type": "string",
@@ -684,6 +756,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Logs",
+            "description": "Logs"
         },
         {
             "name": "Tasks",
