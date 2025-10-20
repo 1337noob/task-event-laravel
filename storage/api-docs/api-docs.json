@@ -194,7 +194,7 @@
                         }
                     },
                     {
-                        "name": "search",
+                        "name": "title",
                         "in": "query",
                         "description": "Search title",
                         "required": false,
@@ -293,17 +293,47 @@
                     }
                 ]
             },
+            "delete": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Delete a task",
+                "operationId": "98b37d208088545ecb5d28b97a1d44a4",
+                "parameters": [
+                    {
+                        "name": "uuid",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/tasks/{id}": {
             "put": {
                 "tags": [
                     "Tasks"
                 ],
                 "summary": "Update a task",
-                "operationId": "c61217823cd9961a860410e0cec6912e",
+                "operationId": "1aaf37e74360ef4c10fadaee02ae77fb",
                 "parameters": [
                     {
-                        "name": "uuid",
+                        "name": "id",
                         "in": "path",
-                        "description": "UUID",
+                        "description": "id",
                         "required": true,
                         "schema": {
                             "type": "string",
@@ -331,34 +361,6 @@
                                 }
                             }
                         }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Tasks"
-                ],
-                "summary": "Delete a task",
-                "operationId": "98b37d208088545ecb5d28b97a1d44a4",
-                "parameters": [
-                    {
-                        "name": "uuid",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Deleted"
                     }
                 },
                 "security": [
@@ -503,12 +505,7 @@
             "TaskResponse": {
                 "properties": {
                     "data": {
-                        "properties": {
-                            "task": {
-                                "$ref": "#/components/schemas/Task"
-                            }
-                        },
-                        "type": "object"
+                        "$ref": "#/components/schemas/Task"
                     }
                 },
                 "type": "object"

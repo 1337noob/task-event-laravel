@@ -2,20 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\TaskCreated;
-use App\Events\TaskDeleted;
-use App\Events\TaskUpdated;
 use App\Http\Requests\GetTasksRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
-use App\Models\Task;
+use App\Services\TaskService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
 
 class TaskController extends Controller
 {
+    public function __construct(
+        private TaskService $taskService,
+    )
+    {
+    }
+
     #[OA\Get(
         path: "/api/tasks",
         summary: "Get tasks",
@@ -54,20 +59,7 @@ class TaskController extends Controller
     )]
     public function index(GetTasksRequest $request): AnonymousResourceCollection
     {
-        $validated = $request->validated();
-        $perPage = $validated['per_page'] ?? 10;
-        $page = $validated['page'] ?? 1;
-        $search = $validated['search'] ?? null;
-
-        $query = $request->user()->tasks();
-
-        if ($search) {
-            $query->where('title', 'LIKE', "%{$search}%");
-        }
-
-        $query->orderBy('created_at', 'DESC');
-
-        $tasks = $query->paginate($perPage, ['*'], 'page', $page);
+        $tasks = $this->taskService->getByFilters($request);
 
         return TaskResource::collection($tasks);
     }
@@ -91,13 +83,7 @@ class TaskController extends Controller
     )]
     public function store(StoreTaskRequest $request): TaskResource
     {
-        $validated = $request->validated();
-
-        $task = $request->user()->tasks()->create([
-            'title' => $validated['title'],
-        ]);
-
-        TaskCreated::dispatch($task);
+        $task = $this->taskService->create($request);
 
         return new TaskResource($task);
     }
@@ -123,13 +109,15 @@ class TaskController extends Controller
             ),
         ],
     )]
-    public function show(Task $task): TaskResource
+    public function show(Request $request): TaskResource
     {
+        $task = $this->taskService->findById($request);
+
         return new TaskResource($task);
     }
 
     #[OA\Put(
-        path: "/api/tasks/{uuid}",
+        path: "/api/tasks/{id}",
         summary: "Update a task",
         security: [["bearerAuth" => []]],
         requestBody: new OA\RequestBody(
@@ -139,8 +127,8 @@ class TaskController extends Controller
         tags: ["Tasks"],
         parameters: [
             new OA\Parameter(
-                name: "uuid",
-                description: "UUID",
+                name: "id",
+                description: "id",
                 in: "path",
                 required: true,
                 schema: new OA\Schema(type: "string", format: "uuid")
@@ -154,13 +142,19 @@ class TaskController extends Controller
             ),
         ]
     )]
-    public function update(UpdateTaskRequest $request, Task $task): TaskResource
+    public function update(UpdateTaskRequest $request, string $id)
     {
-        $validated = $request->validated();
-
-        $task->update($validated);
-
-        TaskUpdated::dispatch($task);
+        try {
+            $task = $this->taskService->update($request, $id);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 404);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $e->getCode());
+        }
 
         return new TaskResource($task);
     }
@@ -185,11 +179,9 @@ class TaskController extends Controller
             ),
         ]
     )]
-    public function destroy(Task $task): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
-        $task->delete();
-
-        TaskDeleted::dispatch($task);
+        $this->taskService->deleteById($request, $id);
 
         return response()->json([
             'data' => 'deleted'

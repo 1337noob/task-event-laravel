@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Broker\BrokerInterface;
 use App\Broker\RabbitMQ\RabbitMQBroker;
+use App\Repositories\LogRepository;
+use App\Services\LogService;
 use Illuminate\Support\ServiceProvider;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
@@ -36,6 +38,14 @@ class AppServiceProvider extends ServiceProvider
                 )
             );
         });
+
+        $this->app->when(LogRepository::class)
+            ->needs('$base_url')
+            ->give(config('external.logs.base_url'));
+
+        $this->app->when(LogService::class)
+            ->needs('$cache_ttl')
+            ->give(config('external.logs.cache_ttl'));
     }
 
     public $bindings = [

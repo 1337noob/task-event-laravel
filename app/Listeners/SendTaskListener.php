@@ -29,7 +29,7 @@ class SendTaskListener
             'event' => $event->getType(),
             'task_id' => $event->task->id,
             'user_id' => $event->task->user_id,
-            'timestamp' => $event->task->created_at,
+            'timestamp' => now(),
         ]);
 
         $message = new BrokerMessageDto(
