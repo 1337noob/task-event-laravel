@@ -7,6 +7,7 @@ use App\Http\Requests\AuthRegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use OpenApi\Attributes as OA;
 
@@ -67,7 +68,7 @@ class AuthController
                     schema: new OA\Schema(
                         properties: [
                             new OA\Property(property: "data", properties: [
-                                new OA\Property(property: "token", type: "string", example: "1|randomtoken123"),
+                                new OA\Property(property: "token", type: "string", example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBpL2F1dGgvbG9naW4iLCJpYXQiOjE3NjA5Nzc2NzksImV4cCI6MTc2MDk4MTI3OSwibmJmIjoxNzYwOTc3Njc5LCJqdGkiOiJwU1Z0ZDNrcEpxNDdSblpxIiwic3ViIjoiMDE5YTAwY2UtMWY3Yi03MDYxLWJkZDktNGNlZWMzYjIyODdmIiwicHJ2IjoiMjNiZDVjODk0OWY2MDBhZGIzOWU3MDFjNDAwODcyZGI3YTU5NzZmNyJ9.zEn4wseQ0n67YD1Y3-F1ZaFwEmmkKodnTlZk9zM-4vU"),
                                 new OA\Property(property: "type", type: "string", example: "bearer"),
                                 new OA\Property(property: "expires_in", type: "integer", example: 3600),
                             ], type: "object"),
@@ -114,13 +115,11 @@ class AuthController
             ),
         ]
     )]
-    public function logout(): JsonResponse
+    public function logout(): Response
     {
         auth()->logout();
 
-        return response()->json([
-            'message' => 'Successfully logged out',
-        ]);
+        return response()->noContent();
     }
 
     #[OA\Get(

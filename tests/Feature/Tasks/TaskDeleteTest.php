@@ -29,7 +29,7 @@ class TaskDeleteTest extends TestCase
 
         $response
             ->dump()
-            ->assertStatus(200);
+            ->assertStatus(204);
 
         $this->assertDatabaseMissing('tasks', [
             'id' => $task->id

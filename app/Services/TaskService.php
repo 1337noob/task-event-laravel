@@ -13,6 +13,8 @@ use App\Events\TaskUpdated;
 use App\Http\Requests\GetTasksRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Requests\DeleteTaskRequest;
+use App\Http\Requests\ShowTaskRequest;
 use App\Models\Task;
 use App\Repositories\TaskRepository;
 use Illuminate\Http\Request;
@@ -31,8 +33,12 @@ class TaskService
     {
         $validated = $request->validated();
 
-        $perPage = config('paginate.per_page');
-        $page = isset($validated['page']) ? (int)$validated['page'] : 1;
+        $page = isset($validated['page'])
+            ? (int)$validated['page']
+            : 1;
+        $perPage = isset($validated['per_page'])
+            ? (int)$validated['per_page']
+            : config('paginate.per_page');
 
         return $this->taskRepository->getByFilters(new FiltersDto(
             user_id: $request->user()->id,
@@ -56,25 +62,27 @@ class TaskService
         return $task;
     }
 
-    public function findById(Request $request): Task
+    public function findById(ShowTaskRequest $request): Task
     {
-        $task = $this->taskRepository->findById($request->route('id'));
+        $validated = $request->validated();
+
+        $task = $this->taskRepository->findById($validated['id']);
 
         $this->guardTaskUserId($task, $request->user()->id);
 
         return $task;
     }
 
-    public function update(UpdateTaskRequest $request, string $id): Task
+    public function update(UpdateTaskRequest $request): Task
     {
         $validated = $request->validated();
 
-        $task = $this->taskRepository->findById($id);
+        $task = $this->taskRepository->findById($validated['id']);
 
         $this->guardTaskUserId($task, $request->user()->id);
 
         $task = $this->taskRepository->update(new UpdateTaskDto(
-            id: $id,
+            id: $validated['id'],
             title: $validated['title'],
         ));
 
@@ -83,13 +91,15 @@ class TaskService
         return $task;
     }
 
-    public function deleteById(Request $request, string $id): void
+    public function deleteById(DeleteTaskRequest $request): void
     {
-        $task = $this->taskRepository->findById($id);
+        $validated = $request->validated();
+
+        $task = $this->taskRepository->findById($validated['id']);
 
         $this->guardTaskUserId($task, $request->user()->id);
 
-        $this->taskRepository->delete($id);
+        $this->taskRepository->delete($validated['id']);
 
         TaskDeleted::dispatch($task);
     }

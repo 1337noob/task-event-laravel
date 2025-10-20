@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\GetTasksRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Http\Requests\DeleteTaskRequest;
+use App\Http\Requests\ShowTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Services\TaskService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
@@ -42,7 +42,7 @@ class TaskController extends Controller
                 schema: new OA\Schema(type: "integer", example: 10)
             ),
             new OA\Parameter(
-                name: "search",
+                name: "title",
                 description: "Search title",
                 in: "query",
                 required: false,
@@ -89,13 +89,13 @@ class TaskController extends Controller
     }
 
     #[OA\Get(
-        path: "/api/tasks/{uuid}",
+        path: "/api/tasks/{id}",
         summary: "Show a task",
         security: [["bearerAuth" => []]],
         tags: ["Tasks"],
         parameters: [
             new OA\Parameter(
-                name: "uuid",
+                name: "id",
                 in: "path",
                 required: true,
                 schema: new OA\Schema(type: "string", format: "uuid")
@@ -109,7 +109,7 @@ class TaskController extends Controller
             ),
         ],
     )]
-    public function show(Request $request): TaskResource
+    public function show(ShowTaskRequest $request): TaskResource
     {
         $task = $this->taskService->findById($request);
 
@@ -142,31 +142,21 @@ class TaskController extends Controller
             ),
         ]
     )]
-    public function update(UpdateTaskRequest $request, string $id)
+    public function update(UpdateTaskRequest $request): TaskResource
     {
-        try {
-            $task = $this->taskService->update($request, $id);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 404);
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], $e->getCode());
-        }
+        $task = $this->taskService->update($request);
 
         return new TaskResource($task);
     }
 
     #[OA\Delete(
-        path: "/api/tasks/{uuid}",
+        path: "/api/tasks/{id}",
         summary: "Delete a task",
         security: [["bearerAuth" => []]],
         tags: ["Tasks"],
         parameters: [
             new OA\Parameter(
-                name: "uuid",
+                name: "id",
                 in: "path",
                 required: true,
                 schema: new OA\Schema(type: "string", format: "uuid")
@@ -174,17 +164,15 @@ class TaskController extends Controller
         ],
         responses: [
             new OA\Response(
-                response: 200,
+                response: 204,
                 description: "Deleted",
             ),
         ]
     )]
-    public function destroy(Request $request, string $id): JsonResponse
+    public function destroy(DeleteTaskRequest $request)
     {
-        $this->taskService->deleteById($request, $id);
+        $this->taskService->deleteById($request);
 
-        return response()->json([
-            'data' => 'deleted'
-        ], 200);
+        return response()->noContent();
     }
 }

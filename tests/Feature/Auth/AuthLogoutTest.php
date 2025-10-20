@@ -28,7 +28,7 @@ class AuthLogoutTest extends TestCase
         $response = $this->postJson(route('auth.logout'));
 
         $response->dump()
-            ->assertStatus(200);
+            ->assertStatus(204);
 
         $this->assertGuest('api');
     }

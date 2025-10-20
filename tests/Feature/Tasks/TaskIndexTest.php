@@ -21,6 +21,8 @@ class TaskIndexTest extends TestCase
 
         Task::factory($total)->for($user, 'user')->create();
 
+        $this->assertDatabaseCount('tasks', $total);
+
         $response = $this->actingAs($user)
             ->getJson(route('tasks.index', [
                 'page' => $page,
@@ -59,7 +61,7 @@ class TaskIndexTest extends TestCase
 
         $response = $this->actingAs($user)
             ->getJson(route('tasks.index', [
-                'search' => $search,
+                'title' => $search,
             ]));
 
         $response->dump()

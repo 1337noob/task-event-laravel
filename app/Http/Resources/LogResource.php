@@ -7,18 +7,12 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
 
 #[OA\Schema(
-    schema: "TaskListResponse",
+    schema: "LogListResponse",
     properties: [
         new OA\Property(
             property: "data",
-            properties: [
-                new OA\Property(
-                    property: "tasks",
-                    type: "array",
-                    items: new OA\Items(ref: "#/components/schemas/Task")
-                )
-            ],
-            type: "object"
+            type: "array",
+            items: new OA\Items(ref: "#/components/schemas/Log")
         ),
         new OA\Property(
             property: "meta",
@@ -45,16 +39,16 @@ use OpenApi\Attributes as OA;
     ]
 )]
 #[OA\Schema(
-    schema: "TaskResponse",
+    schema: "LogResponse",
     properties: [
        new OA\Property(
             property: "data",
-            ref: "#/components/schemas/Task"
+            ref: "#/components/schemas/Log"
         )
     ]
 )]
 #[OA\Schema(
-    schema: "Task",
+    schema: "Log",
     properties: [
         new OA\Property(property: "id", type: "string", example: "0199e304-798d-72ad-8f41-80bdc6de0d90"),
         new OA\Property(property: "title", type: "string", example: "New Task"),
