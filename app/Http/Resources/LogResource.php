@@ -29,10 +29,10 @@ use OpenApi\Attributes as OA;
         new OA\Property(
             property: "links",
             properties: [
-                new OA\Property(property: "first", type: "string", example: "http://localhost:8000/api/tasks?page=1"),
-                new OA\Property(property: "last", type: "string", example: "http://localhost:8000/api/tasks?page=3"),
+                new OA\Property(property: "first", type: "string", example: "http://localhost:8000/api/logs?page=1"),
+                new OA\Property(property: "last", type: "string", example: "http://localhost:8000/api/logs?page=3"),
                 new OA\Property(property: "prev", type: "string", nullable: true),
-                new OA\Property(property: "next", type: "string", example: "http://localhost:8000/api/tasks?page=2")
+                new OA\Property(property: "next", type: "string", example: "http://localhost:8000/api/logs?page=2")
             ],
             type: "object"
         )

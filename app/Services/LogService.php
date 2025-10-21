@@ -50,14 +50,16 @@ class LogService
             $result = $this->logRepository->getByFilters($filters);
 
             Cache::set($key, $result, $this->cache_ttl);
+            Log::info('from service');
         } catch (\Throwable $e) {
-            Log::error($e);
+            Log::error('Log service error', ['exception' => $e]);
 
             if (!Cache::has($key)) {
                 throw $e;
             }
 
             $result = Cache::get($key);
+            Log::info('from cache');
         }
 
         return $this->map($result);

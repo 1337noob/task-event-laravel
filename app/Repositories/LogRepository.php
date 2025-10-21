@@ -37,7 +37,7 @@ class LogRepository
 
         $result = $response->json();
 
-        $this->guardResponse($result);
+        $this->validateResponse($result);
 
         return $result;
     }
@@ -45,7 +45,7 @@ class LogRepository
     /**
      * @throws \Exception
      */
-    private function guardResponse(array $result): void
+    private function validateResponse(array $result): void
     {
         if (
             !isset($result['data'])
